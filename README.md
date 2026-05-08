@@ -1,4 +1,4 @@
-# 🚀 Magalu Cloud SRE Challenge
+# 🚀 Desafio Tatiana Dara - Magalu Cloud SRE Pleno
 
 ## 📌 Visão Geral
 
