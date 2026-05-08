@@ -2,6 +2,15 @@
 
 # 🚀 Desafio Tatiana Dara - Magalu Cloud SRE Pleno
 
+## 📚 Documentação
+
+| Documento | Descrição |
+|-----------|------------|
+| [README.md](./README.md) | Visão geral do projeto |
+| [ARGOCD.md](./ARGOCD.md) | Configuração GitOps com ArgoCD |
+
+---
+
 ## 📌 Visão Geral
 
 Este projeto demonstra a construção de um ambiente completo de **infraestrutura cloud-native local**, aplicando boas práticas de **SRE, GitOps, segurança e observabilidade**.
