@@ -8,4 +8,4 @@ spec:
     app: magalu-app
   ports:
     - port: 80
-      targetPort: 8000
+      targetPort: 80

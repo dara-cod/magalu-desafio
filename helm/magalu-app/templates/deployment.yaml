@@ -15,10 +15,19 @@ spec:
     spec:
       containers:
         - name: app
-          image: python:3.11-slim
-          command: ["python", "-m", "http.server", "8000"]
+          image: nginx:alpine
+          imagePullPolicy: Always
+
           ports:
-            - containerPort: 8000
+            - containerPort: 80
+
+          volumeMounts:
+            - name: html
+              mountPath: /usr/share/nginx/html/index.html
+              subPath: index.html
+
+            - name: cache
+              mountPath: /var/cache/nginx
 
           env:
             - name: username
@@ -43,17 +52,21 @@ spec:
           readinessProbe:
             httpGet:
               path: /
-              port: 8000
+              port: 80
             initialDelaySeconds: 5
             periodSeconds: 10
 
           livenessProbe:
             httpGet:
               path: /
-              port: 8000
+              port: 80
             initialDelaySeconds: 10
             periodSeconds: 20
 
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
+      volumes:
+        - name: html
+          configMap:
+            name: magalu-html
+
+        - name: cache
+          emptyDir: {}

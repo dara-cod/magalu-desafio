@@ -1,92 +1,68 @@
-Boa — você chegou na fase final: **documentação + fechamento do projeto**.
-E tem um ponto importante que você mesma já identificou:
-
-👉 **não existe Ingress criado → então o acesso via domínio não vai funcionar ainda**
-
-Vou te entregar um README **corrigido, completo e nível aprovação**, já refletindo tudo que você aprendeu (inclusive esse detalhe do ingress).
-
----
-
-# 📄 README.md — VERSÃO FINAL (ATUALIZADA)
-
-```markdown
 # 🚀 Magalu Cloud SRE Challenge
 
-## 📌 Objetivo
+## 📌 Visão Geral
 
-Provisionar uma infraestrutura resiliente local utilizando Kubernetes, Vault, Observabilidade e CI/CD, seguindo boas práticas de SRE.
+Este projeto demonstra a construção de um ambiente completo de **infraestrutura cloud-native local**, aplicando boas práticas de **SRE, GitOps, segurança e observabilidade**.
+
+A solução inclui provisionamento de cluster Kubernetes, gerenciamento de segredos com Vault, deploy com Helm, sincronização com ArgoCD e visualização via Grafana.
 
 ---
 
 ## 🧱 Arquitetura
 
-A arquitetura foi desenhada separando responsabilidades entre infraestrutura, segurança e aplicação.
+* Kubernetes local com k3d
+* Provisionamento via Terraform
+* Deploy de aplicação com Helm
+* GitOps com ArgoCD
+* Gestão de segredos com Vault + External Secrets
+* Observabilidade com Grafana
+* Banco de dados PostgreSQL via Docker
 
-📁 Todos os diagramas estão na pasta:
+---
+
+## ⚙️ Stack Tecnológica
+
+* **Terraform** — Infraestrutura como código
+* **K3d (Kubernetes)** — Cluster local
+* **Helm** — Gerenciamento de deploy
+* **ArgoCD** — GitOps
+* **Vault** — Gestão de segredos
+* **External Secrets Operator** — Integração com Kubernetes
+* **Docker Compose** — Serviços auxiliares
+* **Grafana** — Observabilidade
+* **NGINX** — Aplicação de exemplo
+
+---
+
+## 📁 Estrutura do Projeto
 
 ```
-
-evidencias/
-
-````
-
----
-
-## ⚙️ Stack utilizada
-
-- Terraform (IaC)
-- K3d (Kubernetes local)
-- Helm (Deploy da aplicação)
-- ArgoCD (GitOps)
-- Vault (Secrets)
-- External Secrets Operator
-- PostgreSQL (Docker)
-- Prometheus + Grafana
-- FastAPI (Python)
-
----
-
-## 🛠️ Instalação de dependências (Ubuntu)
-
-```bash
-chmod +x scripts/install.sh
-./scripts/install.sh
-````
-
-Validar instalação:
-
-```bash
-docker -v
-kubectl version --client
-helm version
-terraform -v
-k3d version
-vault -v
-make -v
+magalu/
+├── docker-compose/
+├── helm/
+│   └── magalu-app/
+├── k8s/
+├── terraform/
+├── vault/
+├── scripts/
+├── evidencias/
+├── .env
+├── .env.example
+└── Makefile
 ```
 
 ---
 
-## 🚀 Como executar o projeto
+## 🔐 Gerenciamento de Variáveis
 
-### 1. Clonar repositório
+O projeto utiliza:
 
-```bash
-git clone https://github.com/dara-cod/magalu-desafio
-cd magalu-desafio
-```
+* `.env` → configuração local (não versionado)
+* `.env.example` → template versionado
 
 ---
 
-### 2. Configurar ambiente
-
-```bash
-cp .env.example .env
-```
-
----
-
-### 3. Execução completa
+## 🚀 Execução Rápida
 
 ```bash
 make all
@@ -94,16 +70,16 @@ make all
 
 ---
 
-## ⚙️ Execução passo a passo (debug)
+## ⚙️ Execução Passo a Passo
 
 ```bash
-make setup     # sobe docker (vault, postgres, grafana)
-make cluster   # cria cluster k3d
-make terraform # instala ingress-nginx, external-secrets, argocd
-make vault     # configura secrets no vault
-make k8s       # aplica secretstore + externalsecret
-make deploy    # deploy da aplicação via helm
-make argocd    # gitops
+make setup      # sobe docker (vault, postgres, grafana)
+make cluster    # cria cluster k3d
+make terraform  # instala ingress e argocd
+make vault      # configura secrets no vault
+make k8s        # aplica manifests (external secrets)
+make deploy     # deploy da aplicação via helm
+make argocd     # aplica aplicação gitops
 ```
 
 ---
@@ -112,26 +88,16 @@ make argocd    # gitops
 
 ### 🟢 Aplicação
 
-⚠️ IMPORTANTE:
-
-Neste projeto o Ingress Controller é provisionado via Terraform, porém o recurso de Ingress da aplicação não foi criado, portanto o acesso ocorre via Service.
-
-👉 Acesse via NodePort:
+Adicionar ao `/etc/hosts`:
 
 ```bash
-kubectl get svc -n magalu
-```
-
-Exemplo:
-
-```
-80:30506
+127.0.0.1 magalu.local
 ```
 
 Acessar:
 
 ```
-http://localhost:30506
+http://magalu.local:8888
 ```
 
 ---
@@ -142,7 +108,7 @@ http://localhost:30506
 http://localhost:3000
 ```
 
-* user: admin
+* user: `admin`
 * senha: definida no `.env`
 
 ---
@@ -153,81 +119,17 @@ http://localhost:3000
 http://localhost:8200
 ```
 
-Token:
-
-```
-root
-```
+* token: `root`
 
 ---
 
-## 🧪 Validação
-
-### Kubernetes
-
-```bash
-kubectl get pods -n magalu
-```
-
-✔️ Esperado:
-
-* app rodando
-* external-secrets rodando
-
----
-
-### Secret
-
-```bash
-kubectl get secret magalu-secret -n magalu
-```
-
-✔️ External Secrets sincronizado
-
----
-
-### App (env)
-
-```bash
-kubectl exec -it <pod-app> -n magalu -- env | grep username
-```
-
----
-
-### PostgreSQL
-
-```bash
-docker exec -it magalu-postgres psql -U sre-magalu -d db-magalu
-```
-
-```sql
-SELECT 'Hello Magalu Cloud';
-```
-
----
-
-### Vault
-
-```bash
-export VAULT_ADDR=http://localhost:8200
-export VAULT_TOKEN=root
-
-vault kv get secret/magalu
-```
-
----
-
-## 🚀 GitOps com ArgoCD
-
-```bash
-make argocd
-```
-
-Acessar:
+### 🚀 ArgoCD
 
 ```bash
 kubectl port-forward svc/argocd-server -n argocd 8081:443
 ```
+
+Acessar:
 
 ```
 https://localhost:8081
@@ -242,49 +144,19 @@ kubectl -n argocd get secret argocd-initial-admin-secret \
 
 ---
 
-## 🔐 Segurança
+## 🧪 Validação do Ambiente
 
-* Nenhum secret hardcoded
-* Uso de `.env` apenas para bootstrap local
-* Vault como fonte de verdade
-* External Secrets para sincronização
-* Containers rodando como non-root
-* Preparado para AWS Secrets Manager
-* Scan com Trivy na pipeline
-
-💡 Para ambiente local usei `.env` e preparei a arquitetura para migrar para Vault / External Secrets em produção.
-
----
-
-## 📦 Estrutura
-
-```
-app/
-docker-compose/
-helm/
-k8s/
-terraform/
-vault/
-scripts/
-evidencias/
+```bash
+kubectl get pods -n magalu
+kubectl get externalsecrets -n magalu
+kubectl get ingress -n magalu
 ```
 
----
+Teste da aplicação:
 
-## 📸 Evidências
-
-Todos os prints exigidos estão em:
-
+```bash
+curl -H "Host: magalu.local" http://localhost:8888
 ```
-evidencias/
-```
-
----
-
-## 📊 Observabilidade
-
-* Prometheus via Helm
-* Grafana externo via Docker
 
 ---
 
@@ -296,49 +168,59 @@ Vault → External Secrets → Kubernetes → Aplicação
 
 ---
 
-## ⚙️ Automação
+## 📊 Observabilidade
 
-```bash
-make all
+* Dashboard configurado no Grafana
+* Visualização de status da aplicação
+* Estrutura pronta para integração com Prometheus
+
+---
+
+## 🚀 GitOps
+
+* ArgoCD sincroniza estado do cluster com repositório
+* Estratégia declarativa de deploy
+* Evita drift de configuração
+
+---
+
+## 🔐 Segurança
+
+* Sem secrets hardcoded
+* Uso de `.env` para bootstrap
+* Vault como source of truth
+* External Secrets para integração segura
+* Containers isolados
+
+---
+
+## 🧠 Principais Desafios e Soluções
+
+| Problema                  | Solução                                |
+| ------------------------- | -------------------------------------- |
+| Conflito Helm vs ArgoCD   | Definição de ownership único           |
+| Erro de portas (Service)  | Ajuste de targetPort                   |
+| CrashLoopBackOff no nginx | Volume para cache (`emptyDir`)         |
+| Problemas de encoding     | Definição de UTF-8 no HTML             |
+| Variáveis não carregadas  | Ajuste do `.env` e contexto do compose |
+| Persistência do Grafana   | Reset de volume                        |
+
+---
+
+## 📸 Evidências
+
+Diretório:
+
+```
+evidencias/
 ```
 
----
+Inclui:
 
-## 🧠 Lições Aprendidas
-
-* Importância de separar responsabilidade entre Terraform e Helm
-* External Secrets requer:
-
-  * token válido
-  * policy correta (data + metadata)
-  * path correto (KV v2)
-* Helm exige estrutura correta de chart (`Chart.yaml + templates`)
-* Ordem de execução impacta diretamente na disponibilidade dos recursos
-* Debug via logs (`kubectl logs`) é essencial em troubleshooting
-* Evitar criação manual de recursos → sempre IaC
-
----
-
-## 🧠 Decisões técnicas
-
-* K3d → leve e rápido para ambiente local
-* External Secrets → padrão moderno de integração com Vault
-* ArgoCD → GitOps declarativo
-* Vault → centralização de secrets
-* Helm → padronização de deploy
-* Terraform → controle da infraestrutura
-
----
-
-## 🚀 Melhorias futuras
-
-* Criar Ingress da aplicação
-* TLS com cert-manager
-* HPA (autoscaling)
-* Deploy real com FastAPI (substituir nginx)
-* Integração com AWS Secrets Manager
-
-```
+* aplicação funcionando
+* pods em execução
+* ArgoCD sincronizado
+* dashboard Grafana
 
 ---
 

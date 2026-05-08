@@ -8,6 +8,7 @@ cluster:
 	  --servers 1 \
 	  --agents 1 \
 	  --image rancher/k3s:v1.28.8-k3s1 \
+	  --port "8888:80@loadbalancer" \
 	  --k3s-arg "--disable=traefik@server:0" || true
 
 	k3d kubeconfig merge magalu --kubeconfig-switch-context

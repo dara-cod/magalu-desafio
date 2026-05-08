@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: magalu-html
+  namespace: magalu
+data:
+  index.html: |
+    <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Magalu Cloud</title>
+      </head>
+      <body>
+        <h1>Hello Magalu Cloud 🚀</h1>
+      </body>
+    </html>
