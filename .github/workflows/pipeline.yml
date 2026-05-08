@@ -28,10 +28,16 @@ jobs:
         working-directory: terraform
         run: terraform validate
 
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      - name: Helm Lint
+        run: helm lint ./helm/magalu-app
+
       - name: Build Docker image
         run: docker build -t magalu/app:latest ./app
 
-      - name: Run Trivy vulnerability scanner
+      - name: Trivy Scan
         uses: aquasecurity/trivy-action@v0.20.0
         with:
           image-ref: magalu/app:latest
