@@ -1,3 +1,5 @@
+- [ArgoCD Setup](./ARGOCD.md)
+
 ## 🚀 GitOps com ArgoCD
 
 O ArgoCD foi configurado para gerenciar o deploy da aplicação via GitOps.
