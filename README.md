@@ -1,3 +1,5 @@
+[![CI Pipeline](https://github.com/dara-cod/magalu-desafio/actions/workflows/ci.yml/badge.svg)](https://github.com/dara-cod/magalu-desafio/actions)
+
 # 🚀 Desafio Tatiana Dara - Magalu Cloud SRE Pleno
 
 ## 📌 Visão Geral
