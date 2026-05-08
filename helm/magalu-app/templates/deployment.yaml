@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: magalu-app
+  namespace: magalu
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: magalu-app
+  template:
+    metadata:
+      labels:
+        app: magalu-app
+    spec:
+      containers:
+        - name: app
+          image: python:3.11-slim
+          command: ["python", "-m", "http.server", "8000"]
+          ports:
+            - containerPort: 8000
+
+          env:
+            - name: username
+              valueFrom:
+                secretKeyRef:
+                  name: magalu-secret
+                  key: username
+            - name: password
+              valueFrom:
+                secretKeyRef:
+                  name: magalu-secret
+                  key: password
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
+
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 20
+
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000

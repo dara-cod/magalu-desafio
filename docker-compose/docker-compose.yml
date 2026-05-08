@@ -1,0 +1,38 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: magalu-postgres
+    env_file:
+      - ../.env
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  vault:
+    image: hashicorp/vault:1.15
+    container_name: magalu-vault
+    ports:
+      - "8200:8200"
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: root
+    command: server -dev -dev-root-token-id=root
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: magalu-grafana
+    env_file:
+      - ../.env
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  grafana_data:
+    driver: local

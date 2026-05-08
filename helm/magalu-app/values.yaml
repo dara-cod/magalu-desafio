@@ -1,0 +1,11 @@
+replicaCount: 1
+
+image:
+  repository: python
+  tag: "3.11-slim"
+
+service:
+  port: 8000
+
+ingress:
+  host: magalu.local
