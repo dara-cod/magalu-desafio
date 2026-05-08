@@ -3,7 +3,7 @@ services:
     image: postgres:15
     container_name: magalu-postgres
     env_file:
-      - ../.env
+     - .env
     ports:
       - "5432:5432"
     volumes:
@@ -25,7 +25,7 @@ services:
     container_name: magalu-grafana
 
     env_file:
-      - ../.env
+     - .env
 
     environment:
       - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER}
