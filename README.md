@@ -13,43 +13,61 @@
 
 ## 📌 Visão Geral
 
-Este projeto demonstra a construção de um ambiente completo de **infraestrutura cloud-native local**, aplicando boas práticas de **SRE, GitOps, segurança e observabilidade**.
+Este projeto demonstra a construção de um ambiente completo de infraestrutura cloud-native local, aplicando boas práticas de:
 
-A solução inclui provisionamento de cluster Kubernetes, gerenciamento de segredos com Vault, deploy com Helm, sincronização com ArgoCD e visualização via Grafana.
+- SRE
+- GitOps
+- Infraestrutura como Código
+- Segurança
+- Observabilidade
+
+A solução contempla provisionamento de cluster Kubernetes, gerenciamento de segredos com Vault, deploy via Helm, sincronização GitOps com ArgoCD e stack de observabilidade utilizando Prometheus + Grafana.
 
 ---
 
 ## 🧱 Arquitetura
 
-* Kubernetes local com k3d
-* Provisionamento via Terraform
-* Deploy de aplicação com Helm
-* GitOps com ArgoCD
-* Gestão de segredos com Vault + External Secrets
-* Observabilidade com Grafana
-* Banco de dados PostgreSQL via Docker
+- Kubernetes local com k3d
+- Provisionamento via Terraform
+- Deploy da aplicação com Helm
+- GitOps com ArgoCD
+- Secrets Management com Vault + External Secrets
+- Observabilidade com Prometheus + Grafana
+- Banco PostgreSQL via Docker Compose
+- Pipeline CI com GitHub Actions
+- Scan de vulnerabilidades com Trivy
 
 ---
 
 ## ⚙️ Stack Tecnológica
 
-* **Terraform** — Infraestrutura como código
-* **K3d (Kubernetes)** — Cluster local
-* **Helm** — Gerenciamento de deploy
-* **ArgoCD** — GitOps
-* **Vault** — Gestão de segredos
-* **External Secrets Operator** — Integração com Kubernetes
-* **Docker Compose** — Serviços auxiliares
-* **Grafana** — Observabilidade
-* **NGINX** — Aplicação de exemplo
+| Tecnologia | Objetivo |
+|------------|-----------|
+| Terraform | Infraestrutura como código |
+| Kubernetes (k3d) | Cluster local |
+| Helm | Gerenciamento de deploy |
+| ArgoCD | GitOps |
+| Vault | Gestão de segredos |
+| External Secrets Operator | Integração Kubernetes + Vault |
+| Docker Compose | Serviços auxiliares |
+| PostgreSQL | Banco de dados |
+| Grafana | Visualização e dashboards |
+| Prometheus | Coleta de métricas |
+| GitHub Actions | Pipeline CI |
+| Trivy | Scan de vulnerabilidades |
+| NGINX | Aplicação exemplo |
 
 ---
 
 ## 📁 Estrutura do Projeto
 
-```
+```text
 magalu/
+├── .github/
+│   └── workflows/
+├── app/
 ├── docker-compose/
+│   └── prometheus/
 ├── helm/
 │   └── magalu-app/
 ├── k8s/
@@ -57,8 +75,10 @@ magalu/
 ├── vault/
 ├── scripts/
 ├── evidencias/
-├── .env
+├── README.md
+├── ARGOCD.md
 ├── .env.example
+├── .gitignore
 └── Makefile
 ```
 
@@ -68,8 +88,10 @@ magalu/
 
 O projeto utiliza:
 
-* `.env` → configuração local (não versionado)
-* `.env.example` → template versionado
+| Arquivo | Objetivo |
+|----------|-----------|
+| `.env` | Configuração local (não versionado) |
+| `.env.example` | Template versionado |
 
 ---
 
@@ -84,13 +106,13 @@ make all
 ## ⚙️ Execução Passo a Passo
 
 ```bash
-make setup      # sobe docker (vault, postgres, grafana)
+make setup      # sobe docker compose
 make cluster    # cria cluster k3d
-make terraform  # instala ingress e argocd
+make terraform  # instala ingress nginx e argocd
 make vault      # configura secrets no vault
-make k8s        # aplica manifests (external secrets)
+make k8s        # aplica manifests kubernetes
 make deploy     # deploy da aplicação via helm
-make argocd     # aplica aplicação gitops
+make argocd     # aplica app gitops
 ```
 
 ---
@@ -107,7 +129,7 @@ Adicionar ao `/etc/hosts`:
 
 Acessar:
 
-```
+```text
 http://magalu.local:8888
 ```
 
@@ -115,26 +137,45 @@ http://magalu.local:8888
 
 ### 📊 Grafana
 
-```
+```text
 http://localhost:3000
 ```
 
-* user: `admin`
-* senha: definida no `.env`
+Usuário:
+
+```text
+admin
+```
+
+Senha definida no `.env`.
+
+---
+
+### 📈 Prometheus
+
+```text
+http://localhost:9090
+```
 
 ---
 
 ### 🔐 Vault
 
-```
+```text
 http://localhost:8200
 ```
 
-* token: `root`
+Token:
+
+```text
+root
+```
 
 ---
 
 ### 🚀 ArgoCD
+
+Executar:
 
 ```bash
 kubectl port-forward svc/argocd-server -n argocd 8081:443
@@ -142,8 +183,14 @@ kubectl port-forward svc/argocd-server -n argocd 8081:443
 
 Acessar:
 
-```
+```text
 https://localhost:8081
+```
+
+Usuário:
+
+```text
+admin
 ```
 
 Senha:
@@ -157,13 +204,17 @@ kubectl -n argocd get secret argocd-initial-admin-secret \
 
 ## 🧪 Validação do Ambiente
 
+### Kubernetes
+
 ```bash
 kubectl get pods -n magalu
-kubectl get externalsecrets -n magalu
 kubectl get ingress -n magalu
+kubectl get externalsecrets -n magalu
 ```
 
-Teste da aplicação:
+---
+
+### Aplicação
 
 ```bash
 curl -H "Host: magalu.local" http://localhost:8888
@@ -171,9 +222,34 @@ curl -H "Host: magalu.local" http://localhost:8888
 
 ---
 
+### PostgreSQL
+
+```bash
+docker exec -it magalu-postgres psql -U sre-magalu -d db-magalu
+```
+
+Teste:
+
+```sql
+SELECT version();
+SELECT 'Hello Magalu Cloud';
+```
+
+---
+
+### Prometheus
+
+Targets:
+
+```text
+Status → Targets → prometheus UP
+```
+
+---
+
 ## 🔑 Fluxo de Secrets
 
-```
+```text
 Vault → External Secrets → Kubernetes → Aplicação
 ```
 
@@ -181,40 +257,65 @@ Vault → External Secrets → Kubernetes → Aplicação
 
 ## 📊 Observabilidade
 
-* Dashboard configurado no Grafana
-* Visualização de status da aplicação
-* Estrutura pronta para integração com Prometheus
+O ambiente possui stack de observabilidade com:
+
+- Prometheus para coleta de métricas
+- Grafana para dashboards e visualização
+- Integração Prometheus + Grafana
+- Dashboard configurado
+- Datasource Prometheus validado
 
 ---
 
 ## 🚀 GitOps
 
-* ArgoCD sincroniza estado do cluster com repositório
-* Estratégia declarativa de deploy
-* Evita drift de configuração
+O ArgoCD foi utilizado como estratégia GitOps para:
+
+- sincronização declarativa
+- gerenciamento contínuo do cluster
+- controle de drift
+- rastreabilidade de deploy
 
 ---
 
 ## 🔐 Segurança
 
-* Sem secrets hardcoded
-* Uso de `.env` para bootstrap
-* Vault como source of truth
-* External Secrets para integração segura
-* Containers isolados
+O projeto aplica práticas de segurança como:
+
+- ausência de secrets hardcoded
+- uso de `.env`
+- Vault como source of truth
+- integração segura via External Secrets
+- scan de vulnerabilidades com Trivy
+- containers isolados
+- `.gitignore` para proteção de credenciais
+
+---
+
+## 🔄 Pipeline CI
+
+Pipeline implementado com GitHub Actions contendo:
+
+- validação Terraform
+- Terraform fmt
+- Terraform validate
+- Helm lint
+- build Docker
+- scan de vulnerabilidades com Trivy
 
 ---
 
 ## 🧠 Principais Desafios e Soluções
 
-| Problema                  | Solução                                |
-| ------------------------- | -------------------------------------- |
-| Conflito Helm vs ArgoCD   | Definição de ownership único           |
-| Erro de portas (Service)  | Ajuste de targetPort                   |
-| CrashLoopBackOff no nginx | Volume para cache (`emptyDir`)         |
-| Problemas de encoding     | Definição de UTF-8 no HTML             |
-| Variáveis não carregadas  | Ajuste do `.env` e contexto do compose |
-| Persistência do Grafana   | Reset de volume                        |
+| Problema | Solução |
+|-----------|----------|
+| Conflito Helm vs ArgoCD | Definição de ownership único |
+| Ingress não acessível | Mapeamento correto da porta no k3d |
+| CrashLoopBackOff nginx | Ajuste de permissões e cache |
+| Problemas de encoding UTF-8 | Ajuste no HTML |
+| Variáveis não carregadas | Correção do contexto `.env` |
+| Persistência do Grafana | Uso correto de Docker Volumes |
+| Estrutura Prometheus | Ajuste de bind mount e paths |
 
 ---
 
@@ -222,16 +323,19 @@ Vault → External Secrets → Kubernetes → Aplicação
 
 Diretório:
 
-```
+```text
 evidencias/
 ```
 
 Inclui:
 
-* aplicação funcionando
-* pods em execução
-* ArgoCD sincronizado
-* dashboard Grafana
+- aplicação funcionando
+- pods Kubernetes
+- ArgoCD sincronizado
+- Prometheus UP
+- dashboard Grafana
+- PostgreSQL operacional
+- pipeline GitHub Actions
+- validações do ambiente
 
 ---
-
